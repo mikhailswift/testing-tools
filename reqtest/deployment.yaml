@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: reqtest
-          image: mikhailswift/reqtest:4
+          image: mikhailswift/reqtest:5
           #          args:
           #            - "--resp-delay=99s"
           #            - "listen"
