@@ -49,6 +49,6 @@ data:
       listen 80;
 
       location /app {
-        proxy_pass http://nginx-service/;
+        proxy_pass http://example-app/;
       }
     }
