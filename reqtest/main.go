@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -13,8 +14,11 @@ import (
 	"time"
 )
 
+var respDelay = flag.Duration("resp-delay", 0*time.Second, "Adds a delay before responding to a request in listen mode")
+
 func main() {
-	args := os.Args[1:]
+	flag.Parse()
+	args := flag.Args()
 	if len(args) == 0 {
 		printUsage()
 		os.Exit(1)
@@ -59,6 +63,11 @@ func listen(args []string) error {
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		log.Println("received request")
+		if respDelay != nil && *respDelay > 0*time.Second {
+			log.Printf("waiting %s before reading/responding...", *respDelay)
+			time.Sleep(*respDelay)
+		}
+
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Printf("error reading body: %v\n", err)
