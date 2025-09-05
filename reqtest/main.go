@@ -133,7 +133,7 @@ func send(args []string) error {
 		bodyStr := hex.EncodeToString(b)
 		req, err := http.NewRequest("PUT", args[0], bytes.NewReader([]byte(bodyStr)))
 		if err != nil {
-			return fmt.Errorf("could make request: %w", err)
+			return fmt.Errorf("could not make request: %w", err)
 		}
 
 		resp, err := client.Do(req)
