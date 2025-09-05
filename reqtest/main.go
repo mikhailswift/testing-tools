@@ -14,7 +14,11 @@ import (
 	"time"
 )
 
-var respDelay = flag.Duration("resp-delay", 0*time.Second, "Adds a delay before responding to a request in listen mode")
+var (
+	respDelay     = flag.Duration("resp-delay", 0*time.Second, "Adds a delay before responding to a request in listen mode")
+	sendStartStep = flag.Int("start-step", 1, "The number of bytes to start sending at in powers of 2 (e.g, a value of 1 will start at 2 bytes, a value of 15 will start at 2^15 bytes)")
+	sendEndStep   = flag.Int("end-step", 25, "The number of bytes to end sending at in powers of 2 (e.g, a value of 25 will stop sending requests once payload sizes hit 2^25 bytes)")
+)
 
 func main() {
 	flag.Parse()
@@ -62,6 +66,11 @@ func listen(args []string) error {
 	}
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		// ignore gets
+		if r.Method == "GET" {
+			return
+		}
+
 		log.Println("received request")
 		if respDelay != nil && *respDelay > 0*time.Second {
 			log.Printf("waiting %s before reading/responding...", *respDelay)
@@ -89,11 +98,31 @@ func send(args []string) error {
 	}
 
 	client := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: 0,
 	}
 
-	maxBytes := 1 << 25 // max out at 32M
-	bytesToSend := 1 << 2
+	var start uint = 1
+	var end uint = 25
+	if sendStartStep != nil && *sendStartStep > 0 {
+		if *sendStartStep >= 32 {
+			return fmt.Errorf("start-step cannot be greater than 31")
+		}
+		start = uint(*sendStartStep)
+	}
+
+	if sendEndStep != nil && *sendEndStep > 0 {
+		if *sendEndStep >= 32 {
+			return fmt.Errorf("end-step cannot be greater than 31")
+		}
+		end = uint(*sendEndStep)
+	}
+
+	if end < start {
+		return fmt.Errorf("end-step cannot be less than start-step")
+	}
+
+	maxBytes := 1 << end
+	bytesToSend := 1 << start
 	for bytesToSend <= maxBytes {
 		log.Printf("sending %v bytes\n", bytesToSend)
 		b := make([]byte, bytesToSend/2)

@@ -16,9 +16,9 @@ spec:
     spec:
       containers:
         - name: reqtest
-          image: mikhailswift/reqtest:3
+          image: mikhailswift/reqtest:4
           #          args:
-          #            - "--resp-delay=10s"
+          #            - "--resp-delay=99s"
           #            - "listen"
           #            - "0.0.0.0:8080"
           ports:
